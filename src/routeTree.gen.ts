@@ -9,8 +9,86 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkshopRouteImport } from './routes/workshop'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as ProcurementRouteImport } from './routes/procurement'
+import { Route as InventoryRouteImport } from './routes/inventory'
+import { Route as HseRouteImport } from './routes/hse'
+import { Route as HrRouteImport } from './routes/hr'
+import { Route as FleetRouteImport } from './routes/fleet'
+import { Route as FinanceRouteImport } from './routes/finance'
+import { Route as DocumentsRouteImport } from './routes/documents'
+import { Route as DailyReportsRouteImport } from './routes/daily-reports'
+import { Route as BusinessDevelopmentRouteImport } from './routes/business-development'
+import { Route as AiInsightsRouteImport } from './routes/ai-insights'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WorkshopRoute = WorkshopRouteImport.update({
+  id: '/workshop',
+  path: '/workshop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProcurementRoute = ProcurementRouteImport.update({
+  id: '/procurement',
+  path: '/procurement',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventoryRoute = InventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HseRoute = HseRouteImport.update({
+  id: '/hse',
+  path: '/hse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HrRoute = HrRouteImport.update({
+  id: '/hr',
+  path: '/hr',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FleetRoute = FleetRouteImport.update({
+  id: '/fleet',
+  path: '/fleet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceRoute = FinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentsRoute = DocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DailyReportsRoute = DailyReportsRouteImport.update({
+  id: '/daily-reports',
+  path: '/daily-reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessDevelopmentRoute = BusinessDevelopmentRouteImport.update({
+  id: '/business-development',
+  path: '/business-development',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiInsightsRoute = AiInsightsRouteImport.update({
+  id: '/ai-insights',
+  path: '/ai-insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +97,214 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-insights': typeof AiInsightsRoute
+  '/business-development': typeof BusinessDevelopmentRoute
+  '/daily-reports': typeof DailyReportsRoute
+  '/documents': typeof DocumentsRoute
+  '/finance': typeof FinanceRoute
+  '/fleet': typeof FleetRoute
+  '/hr': typeof HrRoute
+  '/hse': typeof HseRoute
+  '/inventory': typeof InventoryRoute
+  '/procurement': typeof ProcurementRoute
+  '/projects': typeof ProjectsRoute
+  '/settings': typeof SettingsRoute
+  '/workshop': typeof WorkshopRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-insights': typeof AiInsightsRoute
+  '/business-development': typeof BusinessDevelopmentRoute
+  '/daily-reports': typeof DailyReportsRoute
+  '/documents': typeof DocumentsRoute
+  '/finance': typeof FinanceRoute
+  '/fleet': typeof FleetRoute
+  '/hr': typeof HrRoute
+  '/hse': typeof HseRoute
+  '/inventory': typeof InventoryRoute
+  '/procurement': typeof ProcurementRoute
+  '/projects': typeof ProjectsRoute
+  '/settings': typeof SettingsRoute
+  '/workshop': typeof WorkshopRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-insights': typeof AiInsightsRoute
+  '/business-development': typeof BusinessDevelopmentRoute
+  '/daily-reports': typeof DailyReportsRoute
+  '/documents': typeof DocumentsRoute
+  '/finance': typeof FinanceRoute
+  '/fleet': typeof FleetRoute
+  '/hr': typeof HrRoute
+  '/hse': typeof HseRoute
+  '/inventory': typeof InventoryRoute
+  '/procurement': typeof ProcurementRoute
+  '/projects': typeof ProjectsRoute
+  '/settings': typeof SettingsRoute
+  '/workshop': typeof WorkshopRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/ai-insights'
+    | '/business-development'
+    | '/daily-reports'
+    | '/documents'
+    | '/finance'
+    | '/fleet'
+    | '/hr'
+    | '/hse'
+    | '/inventory'
+    | '/procurement'
+    | '/projects'
+    | '/settings'
+    | '/workshop'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/ai-insights'
+    | '/business-development'
+    | '/daily-reports'
+    | '/documents'
+    | '/finance'
+    | '/fleet'
+    | '/hr'
+    | '/hse'
+    | '/inventory'
+    | '/procurement'
+    | '/projects'
+    | '/settings'
+    | '/workshop'
+  id:
+    | '__root__'
+    | '/'
+    | '/ai-insights'
+    | '/business-development'
+    | '/daily-reports'
+    | '/documents'
+    | '/finance'
+    | '/fleet'
+    | '/hr'
+    | '/hse'
+    | '/inventory'
+    | '/procurement'
+    | '/projects'
+    | '/settings'
+    | '/workshop'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiInsightsRoute: typeof AiInsightsRoute
+  BusinessDevelopmentRoute: typeof BusinessDevelopmentRoute
+  DailyReportsRoute: typeof DailyReportsRoute
+  DocumentsRoute: typeof DocumentsRoute
+  FinanceRoute: typeof FinanceRoute
+  FleetRoute: typeof FleetRoute
+  HrRoute: typeof HrRoute
+  HseRoute: typeof HseRoute
+  InventoryRoute: typeof InventoryRoute
+  ProcurementRoute: typeof ProcurementRoute
+  ProjectsRoute: typeof ProjectsRoute
+  SettingsRoute: typeof SettingsRoute
+  WorkshopRoute: typeof WorkshopRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workshop': {
+      id: '/workshop'
+      path: '/workshop'
+      fullPath: '/workshop'
+      preLoaderRoute: typeof WorkshopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/procurement': {
+      id: '/procurement'
+      path: '/procurement'
+      fullPath: '/procurement'
+      preLoaderRoute: typeof ProcurementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventory': {
+      id: '/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof InventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hse': {
+      id: '/hse'
+      path: '/hse'
+      fullPath: '/hse'
+      preLoaderRoute: typeof HseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hr': {
+      id: '/hr'
+      path: '/hr'
+      fullPath: '/hr'
+      preLoaderRoute: typeof HrRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fleet': {
+      id: '/fleet'
+      path: '/fleet'
+      fullPath: '/fleet'
+      preLoaderRoute: typeof FleetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance': {
+      id: '/finance'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof FinanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documents': {
+      id: '/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/daily-reports': {
+      id: '/daily-reports'
+      path: '/daily-reports'
+      fullPath: '/daily-reports'
+      preLoaderRoute: typeof DailyReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business-development': {
+      id: '/business-development'
+      path: '/business-development'
+      fullPath: '/business-development'
+      preLoaderRoute: typeof BusinessDevelopmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-insights': {
+      id: '/ai-insights'
+      path: '/ai-insights'
+      fullPath: '/ai-insights'
+      preLoaderRoute: typeof AiInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +317,19 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiInsightsRoute: AiInsightsRoute,
+  BusinessDevelopmentRoute: BusinessDevelopmentRoute,
+  DailyReportsRoute: DailyReportsRoute,
+  DocumentsRoute: DocumentsRoute,
+  FinanceRoute: FinanceRoute,
+  FleetRoute: FleetRoute,
+  HrRoute: HrRoute,
+  HseRoute: HseRoute,
+  InventoryRoute: InventoryRoute,
+  ProcurementRoute: ProcurementRoute,
+  ProjectsRoute: ProjectsRoute,
+  SettingsRoute: SettingsRoute,
+  WorkshopRoute: WorkshopRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
