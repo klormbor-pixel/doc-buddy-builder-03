@@ -80,21 +80,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "MEES ERP — Cloud Platform for Engineering & Industrial Services" },
+      { title: "Executive Dashboard · MEES ERP" },
       {
         name: "description",
         content:
-          "Cloud-native ERP for MAUDAL Electrical Engineering Services: projects, procurement, inventory, fleet, HR, HSE, and daily reporting with AI insights.",
+          "Real-time company performance for MEES: revenue, cash position, active projects, fleet, HSE and AI-generated executive summary.",
       },
       { name: "author", content: "MEES" },
-      { property: "og:title", content: "MEES ERP — Cloud Platform for Engineering & Industrial Services" },
+      { property: "og:title", content: "Executive Dashboard · MEES ERP" },
       {
         property: "og:description",
         content:
-          "Digitize every business process at MEES: daily reports roll up from site to CEO, with AI summaries and enterprise-grade workflows.",
+          "Real-time company performance for MEES: revenue, cash position, active projects, fleet, HSE and AI-generated executive summary.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Executive Dashboard · MEES ERP" },
+      { name: "twitter:description", content: "Real-time company performance for MEES: revenue, cash position, active projects, fleet, HSE and AI-generated executive summary." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/e8fc5143-251e-4bce-a052-023877cbb573" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/e8fc5143-251e-4bce-a052-023877cbb573" },
     ],
     links: [
       {
