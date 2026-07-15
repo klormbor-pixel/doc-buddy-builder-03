@@ -518,13 +518,34 @@ function WbsView({ project }: { project: Project }) {
 }
 
 function MilestonesView({ project }: { project: Project }) {
+  const linkedReports = reportsForProject(project.id, seedReports);
+  const nextMilestoneDelta = linkedReports
+    .filter((r) => r.milestone === project.nextMilestone)
+    .reduce((s, r) => s + (r.milestoneDelta ?? 0), 0);
+
   const milestones = [
-    { name: "Kickoff & mobilization", date: project.start, status: "done" as const },
-    { name: "Design approval", date: shift(project.start, 30), status: "done" as const },
-    { name: "Long-lead procurement", date: shift(project.start, 60), status: project.progress > 40 ? "done" : "in-progress" as const },
-    { name: project.nextMilestone, date: project.nextMilestoneDate, status: "in-progress" as const },
-    { name: "Testing & commissioning", date: shift(project.end, -30), status: "planned" as const },
-    { name: "Client handover", date: project.end, status: project.status === "completed" ? "done" : "planned" as const },
+    { name: "Kickoff & mobilization", date: project.start, status: "done" as const, delta: 100 },
+    { name: "Design approval", date: shift(project.start, 30), status: "done" as const, delta: 100 },
+    {
+      name: "Long-lead procurement",
+      date: shift(project.start, 60),
+      status: project.progress > 40 ? ("done" as const) : ("in-progress" as const),
+      delta: project.progress > 40 ? 100 : 55,
+    },
+    {
+      name: project.nextMilestone,
+      date: project.nextMilestoneDate,
+      status: "in-progress" as const,
+      delta: Math.min(100, nextMilestoneDelta),
+      live: true,
+    },
+    { name: "Testing & commissioning", date: shift(project.end, -30), status: "planned" as const, delta: 0 },
+    {
+      name: "Client handover",
+      date: project.end,
+      status: project.status === "completed" ? ("done" as const) : ("planned" as const),
+      delta: project.status === "completed" ? 100 : 0,
+    },
   ];
   return (
     <div className="space-y-2">
@@ -537,18 +558,141 @@ function MilestonesView({ project }: { project: Project }) {
               ? "text-primary"
               : "text-muted-foreground";
         return (
-          <div key={i} className="flex items-center gap-3 rounded-md border border-border px-3 py-2">
-            <Icon className={`h-4 w-4 shrink-0 ${color}`} />
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm text-foreground">{m.name}</p>
-              <p className="text-[11px] text-muted-foreground">{fmt(m.date)}</p>
+          <div key={i} className="rounded-md border border-border px-3 py-2">
+            <div className="flex items-center gap-3">
+              <Icon className={`h-4 w-4 shrink-0 ${color}`} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="truncate text-sm text-foreground">{m.name}</p>
+                  {"live" in m && m.live && (
+                    <Badge variant="outline" className="h-4 border-accent/40 px-1.5 text-[9px] text-accent-foreground">
+                      LIVE
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">{fmt(m.date)}</p>
+              </div>
+              <span className="font-mono text-xs text-muted-foreground">{m.delta}%</span>
+              <Badge variant="outline" className="h-5 text-[10px] capitalize">
+                {m.status.replace("-", " ")}
+              </Badge>
             </div>
-            <Badge variant="outline" className="h-5 text-[10px] capitalize">
-              {m.status.replace("-", " ")}
-            </Badge>
+            {m.status === "in-progress" && <Progress value={m.delta} className="mt-2 h-1" />}
+            {"live" in m && m.live && nextMilestoneDelta > 0 && (
+              <p className="mt-1.5 text-[10px] text-muted-foreground">
+                +{nextMilestoneDelta}% today from{" "}
+                {linkedReports.filter((r) => r.milestone === project.nextMilestone).length} field
+                report(s)
+              </p>
+            )}
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function FieldRollup({ project }: { project: Project }) {
+  const linked = reportsForProject(project.id, seedReports);
+  const rollup = computeProjectRollup(project, seedReports);
+  const recent = linked.slice(0, 3);
+
+  return (
+    <div className="rounded-md border border-primary/30 bg-primary/[0.03] p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+          <ClipboardList className="h-3.5 w-3.5 text-primary" />
+          Field roll-up from daily reports
+        </div>
+        <Button asChild variant="ghost" size="sm" className="h-6 gap-1 text-[11px]">
+          <Link to="/daily-reports">
+            View all
+            <ArrowUpRight className="h-3 w-3" />
+          </Link>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <RollTile label="Reports" value={String(rollup.reportsToday)} />
+        <RollTile
+          label="Hours"
+          value={`${rollup.hoursLogged}h`}
+          sub={`${rollup.activeCrew} crew`}
+        />
+        <RollTile
+          label="Milestone +"
+          value={`+${rollup.milestoneProgressToday}%`}
+          tone={rollup.milestoneProgressToday > 0 ? "ok" : undefined}
+        />
+        <RollTile
+          label="HSE flags"
+          value={String(rollup.hseFlags)}
+          tone={rollup.hseFlags > 0 ? "warn" : "ok"}
+        />
+        <RollTile
+          label="Health"
+          value={String(rollup.healthAdjusted)}
+          sub={
+            rollup.healthDelta === 0
+              ? "no change"
+              : `${rollup.healthDelta > 0 ? "+" : ""}${rollup.healthDelta} today`
+          }
+          tone={rollup.healthDelta < 0 ? "warn" : rollup.healthDelta > 0 ? "ok" : undefined}
+        />
+      </div>
+
+      {recent.length > 0 && (
+        <ul className="mt-3 space-y-1">
+          {recent.map((r) => (
+            <li
+              key={r.id}
+              className="flex items-center gap-2 rounded border border-border/60 bg-background px-2 py-1.5 text-[11px]"
+            >
+              <span
+                className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${
+                  r.status === "flagged"
+                    ? "bg-warning"
+                    : r.status === "pending"
+                      ? "bg-muted-foreground"
+                      : "bg-success"
+                }`}
+              />
+              <span className="font-medium text-foreground">{r.employee}</span>
+              <span className="text-muted-foreground">·</span>
+              <span className="truncate text-muted-foreground">{r.tasks}</span>
+              {r.milestoneDelta ? (
+                <span className="ml-auto shrink-0 font-mono text-success">
+                  +{r.milestoneDelta}%
+                </span>
+              ) : (
+                <span className="ml-auto shrink-0 font-mono text-muted-foreground">{r.time}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function RollTile({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: "ok" | "warn";
+}) {
+  const color =
+    tone === "warn" ? "text-warning" : tone === "ok" ? "text-success" : "text-foreground";
+  return (
+    <div className="rounded border border-border bg-background px-2 py-1.5">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className={`mt-0.5 font-mono text-sm font-semibold ${color}`}>{value}</p>
+      {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
     </div>
   );
 }
