@@ -379,6 +379,9 @@ function ProjectDetail({ project }: { project: Project }) {
           </div>
         </div>
 
+        {/* Field roll-up from daily reports */}
+        <FieldRollup project={project} />
+
         {/* Tabs */}
         <Tabs defaultValue="wbs">
           <TabsList className="grid w-full grid-cols-4">
