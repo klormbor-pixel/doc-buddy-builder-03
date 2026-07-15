@@ -29,7 +29,21 @@ import {
   FileText,
   Wrench,
   ShieldAlert,
+  ClipboardList,
 } from "lucide-react";
+
+import { Link } from "@tanstack/react-router";
+import {
+  projects,
+  phases,
+  projectStatusMeta as statusMeta,
+  computeProjectRollup,
+  reportsForProject,
+  seedReports,
+  type Project,
+  type ProjectStatus as Status,
+  type ProjectPhase as Phase,
+} from "@/lib/erp-data";
 
 import { AppHeader } from "@/components/app-header";
 import { PageShell, PageHeader } from "@/components/page-shell";
