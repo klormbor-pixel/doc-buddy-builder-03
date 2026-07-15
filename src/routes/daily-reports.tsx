@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -14,6 +14,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock,
+  FolderKanban,
+  TrendingUp,
+  ArrowUpRight,
+  Target,
 } from "lucide-react";
 
 import { AppHeader } from "@/components/app-header";
@@ -43,6 +47,16 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import {
+  computeProjectRollup,
+  getProject,
+  projects,
+  projectStatusMeta,
+  seedReports,
+  type DailyReport,
+  type ReportStatus,
+} from "@/lib/erp-data";
+
 export const Route = createFileRoute("/daily-reports")({
   head: () => ({
     meta: [
@@ -50,112 +64,17 @@ export const Route = createFileRoute("/daily-reports")({
       {
         name: "description",
         content:
-          "Digital daily reporting from site to CEO. Tasks, hours, materials, HSE, photos, GPS and AI summaries roll up the MEES hierarchy.",
+          "Digital daily reporting linked to projects. Hours, materials, HSE, photos, GPS and AI summaries roll up into project health and milestone progress.",
       },
     ],
   }),
   component: DailyReportsPage,
 });
 
-type Status = "submitted" | "pending" | "flagged";
-
-type Report = {
-  id: string;
-  employee: string;
-  role: string;
-  project: string;
-  location: string;
-  hours: number;
-  progress: number;
-  tasks: string;
-  materials: string;
-  incidents: string;
-  status: Status;
-  time: string;
-  aiSummary: string;
-};
-
-const seedReports: Report[] = [
-  {
-    id: "DR-2408-091",
-    employee: "Kofi Asante",
-    role: "Electrician",
-    project: "Tarkwa Substation",
-    location: "5.3018°N, 1.9932°W",
-    hours: 9,
-    progress: 88,
-    tasks: "Terminated 33kV cable joints on Bay 3. Torque-tested all lugs to 45 Nm.",
-    materials: "12 x cable lugs, 3 x heat-shrink boots, 1 x insulation tape roll",
-    incidents: "None",
-    status: "submitted",
-    time: "17:42",
-    aiSummary:
-      "Bay 3 cable termination completed within tolerance. On track for energization Friday. No safety incidents.",
-  },
-  {
-    id: "DR-2408-090",
-    employee: "Ama Nyarko",
-    role: "Site Supervisor",
-    project: "Ahafo Camp Wiring",
-    location: "6.6673°N, 2.3389°W",
-    hours: 10,
-    progress: 42,
-    tasks: "Supervised 6 electricians on conduit installation across Block C.",
-    materials: "80m conduit, 220m 2.5mm² cable, 40 x junction boxes",
-    incidents: "Near-miss: loose scaffold plank on 2nd floor, secured immediately.",
-    status: "flagged",
-    time: "18:05",
-    aiSummary:
-      "Block C behind schedule by 2 days due to material shortage. Near-miss logged — recommend HSE inspection.",
-  },
-  {
-    id: "DR-2408-089",
-    employee: "John Mensah",
-    role: "Technician",
-    project: "Takoradi Port HV",
-    location: "4.8946°N, 1.7554°W",
-    hours: 8,
-    progress: 71,
-    tasks: "Meggering of feeder cables. All readings above 500 MΩ.",
-    materials: "Consumables only",
-    incidents: "None",
-    status: "submitted",
-    time: "16:58",
-    aiSummary: "All insulation resistance readings passed. Ready for commissioning tests.",
-  },
-  {
-    id: "DR-2408-088",
-    employee: "Faustina Owusu",
-    role: "Artisan",
-    project: "Kumasi BRT Depot",
-    location: "6.6885°N, 1.6244°W",
-    hours: 9,
-    progress: 90,
-    tasks: "Installed 24 x LED high-bay fixtures in bay 2. Tested circuits.",
-    materials: "24 x 200W LED, 60m 4mm² cable",
-    incidents: "None",
-    status: "submitted",
-    time: "17:15",
-    aiSummary: "High-bay installation ahead of plan. Bay 2 lighting ready for handover.",
-  },
-  {
-    id: "DR-2408-087",
-    employee: "Michael Adjei",
-    role: "Electrician",
-    project: "Obuasi Mine Lighting",
-    location: "6.2027°N, 1.6708°W",
-    hours: 0,
-    progress: 0,
-    tasks: "—",
-    materials: "—",
-    incidents: "—",
-    status: "pending",
-    time: "—",
-    aiSummary: "No report submitted yet. Reminder sent at 17:30.",
-  },
-];
-
-const statusMeta: Record<Status, { label: string; className: string; icon: React.ComponentType<{ className?: string }> }> = {
+const statusMeta: Record<
+  ReportStatus,
+  { label: string; className: string; icon: React.ComponentType<{ className?: string }> }
+> = {
   submitted: {
     label: "Submitted",
     className: "bg-success/15 text-success border-success/30",
@@ -174,15 +93,19 @@ const statusMeta: Record<Status, { label: string; className: string; icon: React
 };
 
 function DailyReportsPage() {
-  const [reports, setReports] = useState(seedReports);
-  const [tab, setTab] = useState<"all" | Status>("all");
+  const [reports, setReports] = useState<DailyReport[]>(seedReports);
+  const [tab, setTab] = useState<"all" | ReportStatus>("all");
+  const [projectFilter, setProjectFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Report | null>(seedReports[0]);
+  const [selected, setSelected] = useState<DailyReport | null>(seedReports[0]);
 
-  const filtered = useMemo(
-    () => (tab === "all" ? reports : reports.filter((r) => r.status === tab)),
-    [reports, tab],
-  );
+  const filtered = useMemo(() => {
+    return reports.filter((r) => {
+      if (tab !== "all" && r.status !== tab) return false;
+      if (projectFilter !== "all" && r.projectId !== projectFilter) return false;
+      return true;
+    });
+  }, [reports, tab, projectFilter]);
 
   const counts = useMemo(
     () => ({
@@ -196,13 +119,30 @@ function DailyReportsPage() {
 
   return (
     <>
-      <AppHeader title="Daily Reports" crumbs={[{ label: "Overview" }, { label: "Daily Reports" }]} />
+      <AppHeader
+        title="Daily Reports"
+        crumbs={[{ label: "Overview" }, { label: "Daily Reports" }]}
+      />
       <PageShell>
         <PageHeader
           title="Daily Reporting System"
-          description="Every employee submits a digital daily report. Reports roll up: Employee → Supervisor → PM → Ops → CEO."
+          description="Every report is linked to a project. Hours, HSE flags and milestone progress roll up automatically to project health."
           actions={
             <>
+              <Select value={projectFilter} onValueChange={setProjectFilter}>
+                <SelectTrigger className="h-8 w-[200px] text-xs">
+                  <FolderKanban className="mr-1.5 h-3.5 w-3.5" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All projects</SelectItem>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.code} · {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Filter className="h-3.5 w-3.5" />
                 Filter
@@ -219,8 +159,9 @@ function DailyReportsPage() {
                     setReports((prev) => [r, ...prev]);
                     setSelected(r);
                     setOpen(false);
+                    const p = getProject(r.projectId);
                     toast.success("Daily report submitted", {
-                      description: `Rolled up to Site Supervisor · ${r.project}`,
+                      description: `Rolled up to ${p?.code ?? "project"} · ${p?.name ?? ""}`,
                     });
                   }}
                 />
@@ -231,7 +172,11 @@ function DailyReportsPage() {
 
         <div className="mb-4 grid gap-3 sm:grid-cols-4">
           {[
-            { label: "Today's submissions", value: `${counts.submitted}/${counts.all}`, tone: "text-success" },
+            {
+              label: "Today's submissions",
+              value: `${counts.submitted}/${counts.all}`,
+              tone: "text-success",
+            },
             { label: "Flagged for review", value: counts.flagged, tone: "text-warning" },
             { label: "Outstanding", value: counts.pending, tone: "text-muted-foreground" },
             { label: "Compliance rate", value: "89%", tone: "text-primary" },
@@ -271,6 +216,7 @@ function DailyReportsPage() {
                   const meta = statusMeta[r.status];
                   const Icon = meta.icon;
                   const active = selected?.id === r.id;
+                  const project = getProject(r.projectId);
                   return (
                     <li key={r.id}>
                       <button
@@ -293,8 +239,10 @@ function DailyReportsPage() {
                             </p>
                             <span className="text-[11px] text-muted-foreground">· {r.role}</span>
                           </div>
-                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                            {r.project} · {r.time}
+                          <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                            <span className="font-mono text-[10px]">{project?.code}</span>
+                            <span className="truncate">{project?.name}</span>
+                            <span>· {r.time}</span>
                           </p>
                         </div>
                         <Badge variant="outline" className={`gap-1 border ${meta.className}`}>
@@ -306,21 +254,27 @@ function DailyReportsPage() {
                     </li>
                   );
                 })}
+                {filtered.length === 0 && (
+                  <li className="p-6 text-center text-sm text-muted-foreground">
+                    No reports match your filters.
+                  </li>
+                )}
               </ul>
             </CardContent>
           </Card>
 
-          <div className="space-y-4">
-            {selected && <ReportDetail r={selected} />}
-          </div>
+          <div className="space-y-4">{selected && <ReportDetail r={selected} reports={reports} />}</div>
         </div>
       </PageShell>
     </>
   );
 }
 
-function ReportDetail({ r }: { r: Report }) {
+function ReportDetail({ r, reports }: { r: DailyReport; reports: DailyReport[] }) {
   const meta = statusMeta[r.status];
+  const project = getProject(r.projectId);
+  const rollup = project ? computeProjectRollup(project, reports) : null;
+
   return (
     <>
       <Card>
@@ -333,7 +287,7 @@ function ReportDetail({ r }: { r: Report }) {
               </Badge>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              <span className="font-mono">{r.id}</span> · {r.project} · Submitted {r.time}
+              <span className="font-mono">{r.id}</span> · Submitted {r.time}
             </p>
           </div>
           <Badge variant="outline" className={meta.className}>
@@ -346,6 +300,72 @@ function ReportDetail({ r }: { r: Report }) {
           <Metric label="GPS" value={r.location} mono />
         </CardContent>
       </Card>
+
+      {project && (
+        <Card className="border-primary/30 bg-primary/[0.03]">
+          <CardHeader className="pb-2">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <FolderKanban className="h-3.5 w-3.5 text-primary" />
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    {project.code}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={`h-4 px-1.5 text-[10px] ${projectStatusMeta[project.status].className}`}
+                  >
+                    {projectStatusMeta[project.status].label}
+                  </Badge>
+                </div>
+                <CardTitle className="mt-1 text-sm">{project.name}</CardTitle>
+                <p className="text-[11px] text-muted-foreground">
+                  {project.client} · PM {project.pm}
+                </p>
+              </div>
+              <Button asChild variant="ghost" size="sm" className="h-7 gap-1 text-xs">
+                <Link to="/projects">
+                  Open project
+                  <ArrowUpRight className="h-3 w-3" />
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            {r.milestone && (
+              <div className="rounded-md border border-border bg-background p-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
+                    <Target className="h-3.5 w-3.5 text-accent-foreground" />
+                    Milestone contribution
+                  </span>
+                  <span className="font-mono text-success">
+                    +{r.milestoneDelta ?? 0}%
+                  </span>
+                </div>
+                <p className="mt-1 truncate text-[11px] text-muted-foreground">
+                  → {r.milestone}
+                </p>
+              </div>
+            )}
+            {rollup && (
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <RollupStat
+                  label="Health"
+                  value={`${rollup.healthAdjusted}`}
+                  delta={rollup.healthDelta}
+                />
+                <RollupStat label="Hours logged" value={`${rollup.hoursLogged}h`} />
+                <RollupStat
+                  label="Flags today"
+                  value={String(rollup.flagged + rollup.hseFlags)}
+                  tone={rollup.flagged + rollup.hseFlags > 0 ? "warn" : "ok"}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-accent/40 bg-gradient-to-br from-card to-accent/5">
         <CardHeader className="pb-2">
@@ -388,7 +408,11 @@ function ReportDetail({ r }: { r: Report }) {
             {[
               { role: "Employee", name: r.employee, done: true },
               { role: "Supervisor", name: "A. Nyarko", done: true },
-              { role: "Proj. Manager", name: "K. Owusu", done: r.status === "submitted" },
+              {
+                role: "Proj. Manager",
+                name: project?.pm ?? "—",
+                done: r.status === "submitted",
+              },
               { role: "Ops Manager", name: "K. Asare", done: false },
               { role: "CEO", name: "Dr. Maudal", done: false },
             ].map((step, i) => (
@@ -411,6 +435,46 @@ function ReportDetail({ r }: { r: Report }) {
   );
 }
 
+function RollupStat({
+  label,
+  value,
+  delta,
+  tone,
+}: {
+  label: string;
+  value: string;
+  delta?: number;
+  tone?: "ok" | "warn";
+}) {
+  const deltaColor =
+    delta === undefined
+      ? ""
+      : delta > 0
+        ? "text-success"
+        : delta < 0
+          ? "text-destructive"
+          : "text-muted-foreground";
+  return (
+    <div className="rounded-md border border-border bg-background p-2">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p
+        className={`mt-0.5 font-mono text-sm font-semibold ${
+          tone === "warn" ? "text-warning" : "text-foreground"
+        }`}
+      >
+        {value}
+      </p>
+      {delta !== undefined && (
+        <p className={`mt-0.5 inline-flex items-center gap-0.5 text-[10px] ${deltaColor}`}>
+          <TrendingUp className="h-2.5 w-2.5" />
+          {delta > 0 ? "+" : ""}
+          {delta}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function Metric({
   label,
   value,
@@ -424,7 +488,9 @@ function Metric({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       <p className={`mt-1 text-sm font-semibold text-foreground ${mono ? "font-mono" : ""}`}>
         {value}
       </p>
@@ -444,7 +510,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Chip({ icon: Icon, children }: { icon: React.ComponentType<{ className?: string }>; children: React.ReactNode }) {
+function Chip({
+  icon: Icon,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs text-secondary-foreground">
       <Icon className="h-3 w-3" />
@@ -453,44 +525,46 @@ function Chip({ icon: Icon, children }: { icon: React.ComponentType<{ className?
   );
 }
 
-function NewReportDialog({ onSubmit }: { onSubmit: (r: Report) => void }) {
-  const [project, setProject] = useState("Tarkwa Substation");
+function NewReportDialog({ onSubmit }: { onSubmit: (r: DailyReport) => void }) {
+  const [projectId, setProjectId] = useState(projects[0].id);
   const [hours, setHours] = useState("8");
   const [progress, setProgress] = useState("70");
   const [tasks, setTasks] = useState("");
   const [materials, setMaterials] = useState("");
   const [incidents, setIncidents] = useState("None");
+  const [milestoneDelta, setMilestoneDelta] = useState("5");
+
+  const project = getProject(projectId);
 
   return (
     <DialogContent className="max-w-2xl">
       <DialogHeader>
         <DialogTitle>Submit daily report</DialogTitle>
         <DialogDescription>
-          Auto-tagged with your GPS, photos, voice note and digital signature.
+          Linked to a project. Auto-tagged with GPS, photos, voice note and digital signature.
         </DialogDescription>
       </DialogHeader>
 
       <div className="grid gap-4 py-2 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label className="text-xs">Project</Label>
-          <Select value={project} onValueChange={setProject}>
+          <Select value={projectId} onValueChange={setProjectId}>
             <SelectTrigger className="mt-1.5">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {[
-                "Tarkwa Substation",
-                "Obuasi Mine Lighting",
-                "Takoradi Port HV",
-                "Kumasi BRT Depot",
-                "Ahafo Camp Wiring",
-              ].map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
+              {projects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.code} · {p.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {project && (
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Next milestone: <span className="font-medium text-foreground">{project.nextMilestone}</span>
+            </p>
+          )}
         </div>
 
         <div>
@@ -514,6 +588,21 @@ function NewReportDialog({ onSubmit }: { onSubmit: (r: Report) => void }) {
             value={progress}
             onChange={(e) => setProgress(e.target.value)}
           />
+        </div>
+
+        <div className="sm:col-span-2">
+          <Label className="text-xs">Milestone contribution (%)</Label>
+          <Input
+            className="mt-1.5"
+            type="number"
+            min={0}
+            max={100}
+            value={milestoneDelta}
+            onChange={(e) => setMilestoneDelta(e.target.value)}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Rolls up to <span className="font-medium">{project?.nextMilestone}</span>.
+          </p>
         </div>
 
         <div className="sm:col-span-2">
@@ -560,21 +649,24 @@ function NewReportDialog({ onSubmit }: { onSubmit: (r: Report) => void }) {
           className="gap-1.5"
           onClick={() => {
             const now = new Date();
+            const flagged = incidents && incidents.toLowerCase() !== "none";
             onSubmit({
               id: `DR-${Math.floor(Math.random() * 900000) + 100000}`,
               employee: "Kwame Asare",
               role: "Operations Manager",
-              project,
+              projectId,
               location: "5.5502°N, 0.2174°W",
               hours: Number(hours) || 0,
               progress: Number(progress) || 0,
               tasks: tasks || "—",
               materials: materials || "—",
               incidents: incidents || "None",
-              status: incidents && incidents.toLowerCase() !== "none" ? "flagged" : "submitted",
+              status: flagged ? "flagged" : "submitted",
               time: now.toTimeString().slice(0, 5),
               aiSummary:
                 "Report auto-summarized by MEES AI: within plan, no critical exceptions detected.",
+              milestone: project?.nextMilestone,
+              milestoneDelta: Number(milestoneDelta) || 0,
             });
           }}
         >

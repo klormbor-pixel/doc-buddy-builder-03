@@ -29,7 +29,21 @@ import {
   FileText,
   Wrench,
   ShieldAlert,
+  ClipboardList,
 } from "lucide-react";
+
+import { Link } from "@tanstack/react-router";
+import {
+  projects,
+  phases,
+  projectStatusMeta as statusMeta,
+  computeProjectRollup,
+  reportsForProject,
+  seedReports,
+  type Project,
+  type ProjectStatus as Status,
+  type ProjectPhase as Phase,
+} from "@/lib/erp-data";
 
 import { AppHeader } from "@/components/app-header";
 import { PageShell, PageHeader } from "@/components/page-shell";
@@ -72,187 +86,6 @@ export const Route = createFileRoute("/projects")({
   component: ProjectsPage,
 });
 
-type Status = "on-track" | "at-risk" | "delayed" | "completed";
-type Phase = "Design" | "Procurement" | "Installation" | "Testing" | "Handover";
-
-type Project = {
-  id: string;
-  code: string;
-  name: string;
-  client: string;
-  location: string;
-  pm: string;
-  status: Status;
-  phase: Phase;
-  progress: number;
-  health: number;
-  budget: number; // GHS millions
-  spent: number;
-  start: string;
-  end: string;
-  crew: number;
-  openSnags: number;
-  openCOs: number;
-  hseIncidents: number;
-  nextMilestone: string;
-  nextMilestoneDate: string;
-};
-
-const projects: Project[] = [
-  {
-    id: "p1",
-    code: "MEES-2408",
-    name: "Tarkwa Substation Upgrade",
-    client: "Gold Fields Ghana",
-    location: "Tarkwa, Western Region",
-    pm: "K. Owusu",
-    status: "on-track",
-    phase: "Testing",
-    progress: 82,
-    health: 92,
-    budget: 4.2,
-    spent: 3.1,
-    start: "2026-01-14",
-    end: "2026-09-30",
-    crew: 24,
-    openSnags: 6,
-    openCOs: 1,
-    hseIncidents: 0,
-    nextMilestone: "Bay 4 energization",
-    nextMilestoneDate: "2026-07-24",
-  },
-  {
-    id: "p2",
-    code: "MEES-2411",
-    name: "Obuasi Mine Lighting Retrofit",
-    client: "AngloGold Ashanti",
-    location: "Obuasi, Ashanti Region",
-    pm: "A. Boateng",
-    status: "on-track",
-    phase: "Installation",
-    progress: 64,
-    health: 78,
-    budget: 1.8,
-    spent: 1.1,
-    start: "2026-03-02",
-    end: "2026-08-15",
-    crew: 12,
-    openSnags: 3,
-    openCOs: 0,
-    hseIncidents: 1,
-    nextMilestone: "Level 32 handover",
-    nextMilestoneDate: "2026-07-20",
-  },
-  {
-    id: "p3",
-    code: "MEES-2415",
-    name: "Takoradi Port HV Distribution",
-    client: "GPHA",
-    location: "Takoradi Port",
-    pm: "J. Mensah",
-    status: "at-risk",
-    phase: "Procurement",
-    progress: 38,
-    health: 65,
-    budget: 6.4,
-    spent: 2.9,
-    start: "2026-02-10",
-    end: "2026-12-20",
-    crew: 18,
-    openSnags: 2,
-    openCOs: 3,
-    hseIncidents: 1,
-    nextMilestone: "Transformer delivery",
-    nextMilestoneDate: "2026-08-05",
-  },
-  {
-    id: "p4",
-    code: "MEES-2418",
-    name: "Kumasi BRT Depot Electrification",
-    client: "Ministry of Transport",
-    location: "Kumasi",
-    pm: "K. Owusu",
-    status: "on-track",
-    phase: "Installation",
-    progress: 71,
-    health: 88,
-    budget: 3.1,
-    spent: 2.0,
-    start: "2026-01-20",
-    end: "2026-10-10",
-    crew: 16,
-    openSnags: 4,
-    openCOs: 2,
-    hseIncidents: 0,
-    nextMilestone: "Charging bay energization",
-    nextMilestoneDate: "2026-07-30",
-  },
-  {
-    id: "p5",
-    code: "MEES-2422",
-    name: "Ahafo Camp Wiring & Distribution",
-    client: "Newmont Ahafo",
-    location: "Ahafo, Brong Region",
-    pm: "M. Adjei",
-    status: "delayed",
-    phase: "Installation",
-    progress: 43,
-    health: 41,
-    budget: 2.6,
-    spent: 1.8,
-    start: "2026-03-15",
-    end: "2026-08-30",
-    crew: 14,
-    openSnags: 11,
-    openCOs: 2,
-    hseIncidents: 2,
-    nextMilestone: "Block C rough-in",
-    nextMilestoneDate: "2026-07-18",
-  },
-  {
-    id: "p6",
-    code: "MEES-2401",
-    name: "Tema Refinery Panel Refurb",
-    client: "TOR",
-    location: "Tema",
-    pm: "F. Nyarko",
-    status: "completed",
-    phase: "Handover",
-    progress: 100,
-    health: 96,
-    budget: 0.9,
-    spent: 0.86,
-    start: "2025-11-01",
-    end: "2026-05-30",
-    crew: 6,
-    openSnags: 0,
-    openCOs: 0,
-    hseIncidents: 0,
-    nextMilestone: "Final documentation",
-    nextMilestoneDate: "2026-06-05",
-  },
-];
-
-const phases: Phase[] = ["Design", "Procurement", "Installation", "Testing", "Handover"];
-
-const statusMeta: Record<Status, { label: string; className: string }> = {
-  "on-track": {
-    label: "On Track",
-    className: "bg-success/15 text-success border-success/30",
-  },
-  "at-risk": {
-    label: "At Risk",
-    className: "bg-warning/15 text-warning border-warning/40",
-  },
-  delayed: {
-    label: "Delayed",
-    className: "bg-destructive/15 text-destructive border-destructive/40",
-  },
-  completed: {
-    label: "Completed",
-    className: "bg-info/15 text-info border-info/40",
-  },
-};
 
 function ProjectsPage() {
   const [query, setQuery] = useState("");
@@ -546,6 +379,9 @@ function ProjectDetail({ project }: { project: Project }) {
           </div>
         </div>
 
+        {/* Field roll-up from daily reports */}
+        <FieldRollup project={project} />
+
         {/* Tabs */}
         <Tabs defaultValue="wbs">
           <TabsList className="grid w-full grid-cols-4">
@@ -682,13 +518,34 @@ function WbsView({ project }: { project: Project }) {
 }
 
 function MilestonesView({ project }: { project: Project }) {
+  const linkedReports = reportsForProject(project.id, seedReports);
+  const nextMilestoneDelta = linkedReports
+    .filter((r) => r.milestone === project.nextMilestone)
+    .reduce((s, r) => s + (r.milestoneDelta ?? 0), 0);
+
   const milestones = [
-    { name: "Kickoff & mobilization", date: project.start, status: "done" as const },
-    { name: "Design approval", date: shift(project.start, 30), status: "done" as const },
-    { name: "Long-lead procurement", date: shift(project.start, 60), status: project.progress > 40 ? "done" : "in-progress" as const },
-    { name: project.nextMilestone, date: project.nextMilestoneDate, status: "in-progress" as const },
-    { name: "Testing & commissioning", date: shift(project.end, -30), status: "planned" as const },
-    { name: "Client handover", date: project.end, status: project.status === "completed" ? "done" : "planned" as const },
+    { name: "Kickoff & mobilization", date: project.start, status: "done" as const, delta: 100 },
+    { name: "Design approval", date: shift(project.start, 30), status: "done" as const, delta: 100 },
+    {
+      name: "Long-lead procurement",
+      date: shift(project.start, 60),
+      status: project.progress > 40 ? ("done" as const) : ("in-progress" as const),
+      delta: project.progress > 40 ? 100 : 55,
+    },
+    {
+      name: project.nextMilestone,
+      date: project.nextMilestoneDate,
+      status: "in-progress" as const,
+      delta: Math.min(100, nextMilestoneDelta),
+      live: true,
+    },
+    { name: "Testing & commissioning", date: shift(project.end, -30), status: "planned" as const, delta: 0 },
+    {
+      name: "Client handover",
+      date: project.end,
+      status: project.status === "completed" ? ("done" as const) : ("planned" as const),
+      delta: project.status === "completed" ? 100 : 0,
+    },
   ];
   return (
     <div className="space-y-2">
@@ -701,18 +558,141 @@ function MilestonesView({ project }: { project: Project }) {
               ? "text-primary"
               : "text-muted-foreground";
         return (
-          <div key={i} className="flex items-center gap-3 rounded-md border border-border px-3 py-2">
-            <Icon className={`h-4 w-4 shrink-0 ${color}`} />
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm text-foreground">{m.name}</p>
-              <p className="text-[11px] text-muted-foreground">{fmt(m.date)}</p>
+          <div key={i} className="rounded-md border border-border px-3 py-2">
+            <div className="flex items-center gap-3">
+              <Icon className={`h-4 w-4 shrink-0 ${color}`} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="truncate text-sm text-foreground">{m.name}</p>
+                  {"live" in m && m.live && (
+                    <Badge variant="outline" className="h-4 border-accent/40 px-1.5 text-[9px] text-accent-foreground">
+                      LIVE
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">{fmt(m.date)}</p>
+              </div>
+              <span className="font-mono text-xs text-muted-foreground">{m.delta}%</span>
+              <Badge variant="outline" className="h-5 text-[10px] capitalize">
+                {m.status.replace("-", " ")}
+              </Badge>
             </div>
-            <Badge variant="outline" className="h-5 text-[10px] capitalize">
-              {m.status.replace("-", " ")}
-            </Badge>
+            {m.status === "in-progress" && <Progress value={m.delta} className="mt-2 h-1" />}
+            {"live" in m && m.live && nextMilestoneDelta > 0 && (
+              <p className="mt-1.5 text-[10px] text-muted-foreground">
+                +{nextMilestoneDelta}% today from{" "}
+                {linkedReports.filter((r) => r.milestone === project.nextMilestone).length} field
+                report(s)
+              </p>
+            )}
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function FieldRollup({ project }: { project: Project }) {
+  const linked = reportsForProject(project.id, seedReports);
+  const rollup = computeProjectRollup(project, seedReports);
+  const recent = linked.slice(0, 3);
+
+  return (
+    <div className="rounded-md border border-primary/30 bg-primary/[0.03] p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+          <ClipboardList className="h-3.5 w-3.5 text-primary" />
+          Field roll-up from daily reports
+        </div>
+        <Button asChild variant="ghost" size="sm" className="h-6 gap-1 text-[11px]">
+          <Link to="/daily-reports">
+            View all
+            <ArrowUpRight className="h-3 w-3" />
+          </Link>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <RollTile label="Reports" value={String(rollup.reportsToday)} />
+        <RollTile
+          label="Hours"
+          value={`${rollup.hoursLogged}h`}
+          sub={`${rollup.activeCrew} crew`}
+        />
+        <RollTile
+          label="Milestone +"
+          value={`+${rollup.milestoneProgressToday}%`}
+          tone={rollup.milestoneProgressToday > 0 ? "ok" : undefined}
+        />
+        <RollTile
+          label="HSE flags"
+          value={String(rollup.hseFlags)}
+          tone={rollup.hseFlags > 0 ? "warn" : "ok"}
+        />
+        <RollTile
+          label="Health"
+          value={String(rollup.healthAdjusted)}
+          sub={
+            rollup.healthDelta === 0
+              ? "no change"
+              : `${rollup.healthDelta > 0 ? "+" : ""}${rollup.healthDelta} today`
+          }
+          tone={rollup.healthDelta < 0 ? "warn" : rollup.healthDelta > 0 ? "ok" : undefined}
+        />
+      </div>
+
+      {recent.length > 0 && (
+        <ul className="mt-3 space-y-1">
+          {recent.map((r) => (
+            <li
+              key={r.id}
+              className="flex items-center gap-2 rounded border border-border/60 bg-background px-2 py-1.5 text-[11px]"
+            >
+              <span
+                className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${
+                  r.status === "flagged"
+                    ? "bg-warning"
+                    : r.status === "pending"
+                      ? "bg-muted-foreground"
+                      : "bg-success"
+                }`}
+              />
+              <span className="font-medium text-foreground">{r.employee}</span>
+              <span className="text-muted-foreground">·</span>
+              <span className="truncate text-muted-foreground">{r.tasks}</span>
+              {r.milestoneDelta ? (
+                <span className="ml-auto shrink-0 font-mono text-success">
+                  +{r.milestoneDelta}%
+                </span>
+              ) : (
+                <span className="ml-auto shrink-0 font-mono text-muted-foreground">{r.time}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function RollTile({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: "ok" | "warn";
+}) {
+  const color =
+    tone === "warn" ? "text-warning" : tone === "ok" ? "text-success" : "text-foreground";
+  return (
+    <div className="rounded border border-border bg-background px-2 py-1.5">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className={`mt-0.5 font-mono text-sm font-semibold ${color}`}>{value}</p>
+      {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
     </div>
   );
 }
