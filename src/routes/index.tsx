@@ -123,7 +123,7 @@ function DashboardPage() {
       <AppHeader title="Executive Dashboard" crumbs={[{ label: "Overview" }]} />
       <PageShell>
         <PageHeader
-          title="Good afternoon, Kwame"
+          title="Good afternoon, Stephen"
           description="Company performance across all operations, updated 3 minutes ago."
           actions={
             <>
