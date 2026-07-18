@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkshopRouteImport } from './routes/workshop'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RolesRouteImport } from './routes/roles'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ProcurementRouteImport } from './routes/procurement'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -32,6 +33,11 @@ const WorkshopRoute = WorkshopRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RolesRoute = RolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsRoute = ProjectsRouteImport.update({
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRoute
   '/procurement': typeof ProcurementRoute
   '/projects': typeof ProjectsRoute
+  '/roles': typeof RolesRoute
   '/settings': typeof SettingsRoute
   '/workshop': typeof WorkshopRoute
 }
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryRoute
   '/procurement': typeof ProcurementRoute
   '/projects': typeof ProjectsRoute
+  '/roles': typeof RolesRoute
   '/settings': typeof SettingsRoute
   '/workshop': typeof WorkshopRoute
 }
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRoute
   '/procurement': typeof ProcurementRoute
   '/projects': typeof ProjectsRoute
+  '/roles': typeof RolesRoute
   '/settings': typeof SettingsRoute
   '/workshop': typeof WorkshopRoute
 }
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/procurement'
     | '/projects'
+    | '/roles'
     | '/settings'
     | '/workshop'
   fileRoutesByTo: FileRoutesByTo
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/procurement'
     | '/projects'
+    | '/roles'
     | '/settings'
     | '/workshop'
   id:
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/procurement'
     | '/projects'
+    | '/roles'
     | '/settings'
     | '/workshop'
   fileRoutesById: FileRoutesById
@@ -208,6 +220,7 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRoute
   ProcurementRoute: typeof ProcurementRoute
   ProjectsRoute: typeof ProjectsRoute
+  RolesRoute: typeof RolesRoute
   SettingsRoute: typeof SettingsRoute
   WorkshopRoute: typeof WorkshopRoute
 }
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roles': {
+      id: '/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof RolesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects': {
@@ -328,19 +348,10 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRoute,
   ProcurementRoute: ProcurementRoute,
   ProjectsRoute: ProjectsRoute,
+  RolesRoute: RolesRoute,
   SettingsRoute: SettingsRoute,
   WorkshopRoute: WorkshopRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
