@@ -413,7 +413,7 @@ function ReportDetail({ r, reports }: { r: DailyReport; reports: DailyReport[] }
                 name: project?.pm ?? "—",
                 done: r.status === "submitted",
               },
-              { role: "Ops Manager", name: "K. Asare", done: false },
+              { role: "Ops Manager", name: "S. Klormbor", done: false },
               { role: "CEO", name: "Dr. Maudal", done: false },
             ].map((step, i) => (
               <li
@@ -652,7 +652,7 @@ function NewReportDialog({ onSubmit }: { onSubmit: (r: DailyReport) => void }) {
             const flagged = incidents && incidents.toLowerCase() !== "none";
             onSubmit({
               id: `DR-${Math.floor(Math.random() * 900000) + 100000}`,
-              employee: "Kwame Asare",
+              employee: "Stephen Klormbor",
               role: "Operations Manager",
               projectId,
               location: "5.5502°N, 0.2174°W",
