@@ -413,7 +413,7 @@ function ReportDetail({ r, reports }: { r: DailyReport; reports: DailyReport[] }
                 name: project?.pm ?? "—",
                 done: r.status === "submitted",
               },
-              { role: "Ops Manager", name: "K. Asare", done: false },
+              { role: "Ops Manager", name: "S. Klormbor", done: false },
               { role: "CEO", name: "Dr. Maudal", done: false },
             ].map((step, i) => (
               <li
