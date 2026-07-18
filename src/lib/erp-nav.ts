@@ -13,6 +13,7 @@ import {
   FileText,
   Sparkles,
   Settings,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -59,6 +60,9 @@ export const navGroups: NavGroup[] = [
   },
   {
     label: "System",
-    items: [{ title: "Settings", url: "/settings", icon: Settings }],
+    items: [
+      { title: "Roles & Access", url: "/roles", icon: ShieldCheck },
+      { title: "Settings", url: "/settings", icon: Settings },
+    ],
   },
 ];
