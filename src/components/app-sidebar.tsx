@@ -86,11 +86,11 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <div className="flex items-center gap-2.5 px-2 py-1.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-accent-foreground text-xs font-semibold">
-            KA
+            SK
           </div>
           {!collapsed && (
             <div className="flex flex-col leading-tight">
-              <span className="text-xs font-medium text-sidebar-foreground">Kwame Asare</span>
+              <span className="text-xs font-medium text-sidebar-foreground">Stephen Klormbor</span>
               <span className="text-[10px] text-sidebar-foreground/60">Operations Manager</span>
             </div>
           )}
