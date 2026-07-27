@@ -14,7 +14,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { navGroups } from "@/lib/erp-nav";
+import { navGroups } from "@/config/nav";
 
 export function AppSidebar() {
   const { state } = useSidebar();

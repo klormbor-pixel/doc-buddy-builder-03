@@ -10,8 +10,8 @@ import {
   Circle,
 } from "lucide-react";
 
-import { AppHeader } from "@/components/app-header";
-import { PageShell, PageHeader } from "@/components/page-shell";
+import { AppHeader } from "@/components/layout/app-header";
+import { PageShell, PageHeader } from "@/components/common/page-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ import {
   approvalTiers,
   type Role,
   type RoleCategory,
-} from "@/lib/erp-roles";
+} from "@/modules/auth/roles";
 
 export const Route = createFileRoute("/roles")({
   head: () => ({

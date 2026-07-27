@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { AppHeader } from "@/components/app-header";
-import { PageShell, PageHeader, ModulePlaceholder } from "@/components/page-shell";
+import { AppHeader } from "@/components/layout/app-header";
+import { PageShell, PageHeader, ModulePlaceholder } from "@/components/common/page-shell";
 
 export function ModulePage({
   title,

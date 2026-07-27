@@ -43,10 +43,10 @@ import {
   type Project,
   type ProjectStatus as Status,
   type ProjectPhase as Phase,
-} from "@/lib/erp-data";
+} from "@/modules/dashboard/data";
 
-import { AppHeader } from "@/components/app-header";
-import { PageShell, PageHeader } from "@/components/page-shell";
+import { AppHeader } from "@/components/layout/app-header";
+import { PageShell, PageHeader } from "@/components/common/page-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
