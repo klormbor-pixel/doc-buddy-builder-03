@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "mees-erp",
+      "version": "0.1.0",
+      "title": "MEES ERP"
+    },
+    "tools": [
+      {
+        "name": "list_projects",
+        "title": "List projects",
+        "description": "List MEES ERP demo projects with code, client, phase, status, progress, budget and next milestone.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Optional status filter.",
+              "type": "string",
+              "enum": [
+                "on-track",
+                "at-risk",
+                "delayed",
+                "completed"
+              ]
+            },
+            "search": {
+              "description": "Optional text match on name, code or client.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_project_rollup",
+        "title": "Get project roll-up",
+        "description": "Get one project plus its automatic field roll-up from linked daily reports (hours, crew, HSE flags, milestone progress, adjusted health).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "project": {
+              "type": "string",
+              "description": "Project id (e.g. p1) or project code."
+            }
+          },
+          "required": [
+            "project"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_daily_reports",
+        "title": "List daily reports",
+        "description": "List MEES ERP demo daily field reports with employee, role, hours, tasks, incidents, AI summary and the project each is linked to.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "projectId": {
+              "description": "Filter by project id (e.g. p1).",
+              "type": "string"
+            },
+            "status": {
+              "description": "Filter by report status.",
+              "type": "string",
+              "enum": [
+                "submitted",
+                "pending",
+                "flagged"
+              ]
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_role_access",
+        "title": "Get role access",
+        "description": "Look up the MEES ERP role model: role definitions, headcount, MFA policy and the module-by-module permission matrix. Omit `role` to get every role plus the approval tiers and daily-report escalation chain.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "role": {
+              "description": "Role id or title, e.g. 'ceo' or 'Site Supervisor'.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
